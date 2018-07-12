@@ -15,13 +15,19 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
         android:text="Extract Contact" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/ListContact"
-        android:layout_marginTop="30dp"
-        android:layout_below="@+id/LoadContacts"
-        android:layout_centerHorizontal="true"
-        android:textSize="18sp"
-        />
+   <ScrollView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_below="@+id/LoadContacts">
+       <TextView
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:id="@+id/ListContact"
+           android:layout_marginTop="30dp"
+           android:scrollbars="vertical"
+           android:layout_below="@+id/LoadContacts"
+           android:layout_centerHorizontal="true"
+           android:textSize="18sp"
+           />
+   </ScrollView>
 </RelativeLayout>

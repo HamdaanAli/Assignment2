@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -16,6 +17,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
        cursor.close();
 
         listContacts.setText(builder.toString());
+
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
             if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED)
@@ -108,28 +111,30 @@ public class MainActivity extends AppCompatActivity {
             {
 
 
-                String file_csv=createCSVFile(builder.toString());
-                Log.d("CSV",file_csv);
+           createCSVFile(builder.toString());
+
             }
         }
        return builder.toString();
     }
 
-    public String createCSVFile(String csv)
+    public void createCSVFile(String csv)
     {
         try
         {
-            writer = new CSVWriter(new FileWriter("/sdcard/myfile.csv"), ',');
+            writer = new CSVWriter(new FileWriter(Environment.getExternalStorageDirectory().getAbsolutePath() + "/myfile.csv"), ',');
+
             String entries = csv;
             writer.writeNext(new String[]{entries});
             writer.close();
+
         }
         catch (IOException e)
         {
             Toast.makeText(MainActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
 
         }
-        return csv;
+
    }
     private Observer<String> getContactsObserver() {
         return new Observer<String>() {
