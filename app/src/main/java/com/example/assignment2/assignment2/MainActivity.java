@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.ContactsContract;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,10 +34,9 @@ import io.reactivex.schedulers.Schedulers;
 public class MainActivity extends AppCompatActivity {
 
     private Button loadContacts;
-    private TextView listContacts;
     private CSVWriter writer=null;
     private StringBuilder builder;
-    private Thread thread;
+    private RelativeLayout relativeLayout;
     private Disposable disposable;
     private static final String TAG =MainActivity.class.getSimpleName();
 
@@ -44,8 +45,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        listContacts=(TextView) findViewById(R.id.ListContact);
+        relativeLayout=(RelativeLayout) findViewById(R.id.relativelayout);
         loadContacts=(Button) findViewById(R.id.LoadContacts);
         loadContacts.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                      Observer<String> observer=getContactsObserver();
                      showContacts
                              .observeOn(Schedulers.io())
-                             .subscribeOn(AndroidSchedulers.mainThread())
+                             .subscribeOn(Schedulers.single())
                              .subscribe(observer);
 
                     }
@@ -99,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
         }
        cursor.close();
 
-        listContacts.setText(builder.toString());
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
@@ -127,11 +126,15 @@ public class MainActivity extends AppCompatActivity {
             String entries = csv;
             writer.writeNext(new String[]{entries});
             writer.close();
+            Snackbar snackbar = Snackbar
+                    .make(relativeLayout, "File Saved into Internal Storage", Snackbar.LENGTH_LONG);
 
+            snackbar.show();
         }
         catch (IOException e)
         {
             Toast.makeText(MainActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
+            Log.d("ErrorInCSV",e.getStackTrace()+"");
 
         }
 
@@ -163,5 +166,12 @@ public class MainActivity extends AppCompatActivity {
     }
     private Observable<String> getContact() {
         return Observable.just(loadContacts());
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+      
+        disposable.dispose();
     }
 }
