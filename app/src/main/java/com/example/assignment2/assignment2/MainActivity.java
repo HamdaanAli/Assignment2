@@ -88,48 +88,42 @@ public class MainActivity extends AppCompatActivity {
     @NonNull
     private String loadContacts() {
         StringBuilder builder = new StringBuilder();
-        ContentResolver contentResolver = getContentResolver();
-        Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
-        if (cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
-                String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                int hasPhoneNumber = Integer.parseInt(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
-                if (hasPhoneNumber > 0) {
-                    Cursor cursor1 = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone._ID + " = ?",
-                            new String[]{id}, null);
+        ContentResolver contentResolver=getContentResolver();
+        Cursor c1=contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 
-                    while (cursor1.moveToNext()) {
-                        String phoneNumber = cursor1.getString(cursor1.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        builder.append("Contact : ").append(name).append(", Phone Number : ").append(phoneNumber).append("\n\n");
-                    }
-                    cursor1.close();
-                }
-            }
+        while (c1.moveToNext())
+        {
+            String id = c1.getString(c1.getColumnIndex(ContactsContract.Contacts._ID));
+            String name=c1.getString(c1.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+             Cursor c2=  contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    null,
+                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                    new String[]{id}, null);
+            Cursor c3=contentResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,null,
+                    ContactsContract.CommonDataKinds.Email.CONTACT_ID+" = ?",new String[]{id},null);
+             while (c2.moveToNext())
+             {
+                String phoneNumber=c2.getString(c2.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                 builder.append("Contact : ").append(name).append(", Phone Number : ").append(phoneNumber).append("\n\n");
+             }
+            c2.close();
+             while (c3.moveToNext())
+             {
+                 String email=c3.getString(c3.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+                 builder.append("Contact : ").append(name).append(", Email : ").append(email).append("\n\n");
+             }
+            c3.close();
         }
-        cursor.close();
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(getApplicationContext(), "Permission Denied", Toast.LENGTH_LONG).show();
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
-            } else {
-
-
-                createCSVFile(builder.toString());
-
-            }
-        }
-        return builder.toString();
+        c1.close();
+        createCSVFile(builder.toString());//calling a create csv function
+        return (builder.toString());
     }
 
     public void createCSVFile(String csv) {
         try {
-            String entries = csv;
             writer = new CSVWriter(new FileWriter(Environment.getExternalStorageDirectory().getAbsolutePath() + "/myfile.csv"), ',');
+
+            String entries = csv;
             writer.writeNext(new String[]{entries});
             writer.close();
             Snackbar snackbar = Snackbar
@@ -182,23 +176,5 @@ public class MainActivity extends AppCompatActivity {
         disposable.dispose();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private static void zipFile(String filePath) {
-        try {
-            File file = new File(filePath);
-            String zipFileName = file.getName().concat(".zip");
 
-            FileOutputStream fos = new FileOutputStream(zipFileName);
-            ZipOutputStream zos = new ZipOutputStream(fos);
-            zos.putNextEntry(new ZipEntry(file.getName()));
-            byte[] bytes = Files.readAllBytes(Paths.get(filePath));
-            zos.write(bytes, 0, bytes.length);
-            zos.closeEntry();
-            zos.close();
-        } catch (FileNotFoundException ex) {
-            System.err.format("The file %s does not exist", filePath);
-        } catch (IOException ex) {
-            System.err.println("I/O error: " + ex);
-        }
-    }
 }
